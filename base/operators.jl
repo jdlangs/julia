@@ -132,7 +132,7 @@ const ÷ = div
 
 # mod returns in [0,y) whereas mod1 returns in (0,y]
 mod1{T<:Real}(x::T, y::T) = y-mod(y-x,y)
-rem1{T<:Real}(x::T, y::T) = rem(x-1,y)+1
+rem1{T<:Real}(x::T, y::T) = rem(x-sign(x),y)+sign(x)
 fld1{T<:Real}(x::T, y::T) = fld(x-1,y)+1
 
 # transpose

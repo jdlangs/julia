@@ -3777,7 +3777,8 @@ popdisplay(d::Display)
 
 ("Base","rem1","rem1(x, m)
 
-   Remainder after division, returning in the range (0,m]
+   Remainder after division, returning in the range (0,m] for x > 0,
+   in [-m,0) for x < 0 and 0 for x == 0.
 
 "),
 
