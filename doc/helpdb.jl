@@ -3771,14 +3771,16 @@ popdisplay(d::Display)
 
 ("Base","mod1","mod1(x, m)
 
-   Modulus after division, returning in the range (0,m]
+   Modulus after division, returning with absolute value in the
+   interval (0,m], matching the sign of \"m\".
 
 "),
 
 ("Base","rem1","rem1(x, m)
 
-   Remainder after division, returning in the range (0,m] for x > 0,
-   in [-m,0) for x < 0 and 0 for x == 0.
+   Remainder after division, returning with absolute value in the
+   interval (0,m], matching the sign of \"x\". \"rem1(0,m) == abs(m)\"
+   for all \"m\". I.e., 0 is treated as +0.
 
 "),
 
