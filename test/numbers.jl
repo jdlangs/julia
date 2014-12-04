@@ -310,6 +310,8 @@ end
 @test sign(-0//1) == 0
 @test sign(1//0) == 1
 @test sign(-1//0) == -1
+@test sign(uint(1)) == 1
+@test sign(uint(0)) == 0
 
 @test signbit(1) == 0
 @test signbit(0) == 0
@@ -1194,6 +1196,18 @@ for x=0:5, y=1:5
     @test mod(x,uint(y)) == mod(x,y)
     @test mod(uint(x),-y) == mod(x,-y)
     @test mod(-x,uint(y)) == mod(-x,y)
+
+    @test rem1(uint(x),uint(y)) == (rem(x,y) == 0 ? y : rem(x,y))
+    @test rem1(uint(x),y) == (rem(x,y) == 0 ? y : rem(x,y))
+    @test rem1(x,uint(y)) == (rem(x,y) == 0 ? y : rem(x,y))
+    @test rem1(x,-y) == (rem(x,-y) == 0 ?  y : rem(x,-y))
+    @test rem1(-x,y) == (rem(-x,y) == 0 ? (x == 0 ? y : -y) : rem(-x,y))
+
+    @test mod1(uint(x),uint(y)) == (mod(x,y) == 0 ? y : mod(x,y))
+    @test mod1(uint(x),y) == (mod(x,y) == 0 ? y : mod(x,y))
+    @test mod1(x,uint(y)) == (mod(x,y) == 0 ? y : mod(x,y))
+    @test mod1(x,-y) == (mod(x,-y) == 0 ? -y : mod(x,-y))
+    @test mod1(-x,y) == (mod(-x,y) == 0 ?  y : mod(-x,y))
 end
 
 @test div(typemax(UInt64)  , 1) ==  typemax(UInt64)
