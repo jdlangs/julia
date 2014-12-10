@@ -114,6 +114,8 @@ static builtinspec_t julia_flisp_ast_ext[] = {
     { NULL, NULL }
 };
 
+extern void jl_parse_depwarn(int warn);
+
 DLLEXPORT void jl_init_frontend(void)
 {
     fl_init(4*1024*1024);
@@ -136,6 +138,9 @@ DLLEXPORT void jl_init_frontend(void)
     false_sym = symbol("false");
     fl_error_sym = symbol("error");
     fl_null_sym = symbol("null");
+
+    // Enable / disable syntax deprecation warnings
+    jl_parse_depwarn((int)jl_compileropts.depwarn);
 }
 
 DLLEXPORT void jl_lisp_prompt(void)
@@ -505,6 +510,11 @@ int jl_start_parsing_file(const char *fname)
 void jl_stop_parsing(void)
 {
     fl_applyn(0, symbol_value(symbol("jl-parser-close-stream")));
+}
+
+DLLEXPORT void jl_parse_depwarn(int warn)
+{
+    fl_applyn(1, symbol_value(symbol("jl-parser-depwarn")), warn? FL_T : FL_F);
 }
 
 extern int jl_lineno;
