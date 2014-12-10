@@ -242,7 +242,7 @@ end
 warn(err::Exception; prefix="ERROR: ", kw...) =
     warn(sprint(io->showerror(io,err)), prefix=prefix; kw...)
 
-# Julia compiler options struct
+# Julia compiler options struct (see jl_compileropts_t in src/julia.h)
 immutable JLCompilerOpts
     build_path::Ptr{Cchar}
     code_coverage::Int8

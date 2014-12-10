@@ -88,7 +88,7 @@ static const char *opts =
     " -O, --optimize           Run time-intensive code optimizations\n"
     " --int-literals={32|64}   Select integer literal size independent of platform\n"
     " --dump-bitcode={yes|no}  Dump bitcode for the system image (used with --build)\n"
-    " --no-depwarn             Turn off deprecated syntax warnings\n";
+    " --no-depwarn             Turn off syntax and method deprecation warnings\n";
 
 void parse_opts(int *argcp, char ***argvp)
 {
