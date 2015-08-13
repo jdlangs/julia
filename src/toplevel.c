@@ -141,6 +141,7 @@ jl_value_t *jl_eval_module_expr(jl_expr_t *ex)
         jl_typeerror_type = NULL;
         jl_methoderror_type = NULL;
         jl_loaderror_type = NULL;
+        jl_initerror_type = NULL;
         jl_current_task->tls = jl_nothing; // may contain an entry for :SOURCE_FILE that is not valid in the new base
     }
     // export all modules from Main
@@ -585,8 +586,14 @@ jl_value_t *jl_parse_eval_all(const char *fname, size_t len)
             jl_rethrow();
         }
         else {
-            jl_rethrow_other(jl_new_struct(jl_loaderror_type, fn, ln,
-                                           jl_exception_in_transit));
+            jl_value_t * exception_type = jl_typeof(jl_exception_in_transit);
+            if (strcmp("InitError", jl_typename_str(exception_type)) == 0) {
+                jl_rethrow();
+            }
+            else {
+                jl_rethrow_other(jl_new_struct(jl_loaderror_type, fn, ln,
+                                               jl_exception_in_transit));
+            }
         }
     }
     jl_stop_parsing();
