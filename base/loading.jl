@@ -82,39 +82,46 @@ end
 
 # `wd` is a working directory to search. defaults to current working directory.
 # if `wd === nothing`, no extra path is searched.
-function find_in_path(name::AbstractString, wd = pwd())
-    isabspath(name) && return name
-    base = name
-    if endswith(name,".jl")
-        base = name[1:end-3]
-    else
-        name = string(base,".jl")
+function find_in_path(dir::AbstractString, mod::AbstractString, wd = pwd())
+    if isempty(mod)
+        mod = dir
     end
+    isabspath(dir) && return dir
+
+    if ! endswith(dir,".jl")
+        dir = string(dir,".jl")
+    end
+    dirbase = dir[1:end-3]
+    if ! endswith(mod,".jl")
+        mod = string(mod,".jl")
+    end
+    modbase = mod[1:end-3]
+
     if wd !== nothing
-        isfile_casesensitive(joinpath(wd,name)) && return joinpath(wd,name)
+        isfile_casesensitive(joinpath(wd,dir)) && return joinpath(wd,dir)
     end
     for prefix in [Pkg.dir(); LOAD_PATH]
-        path = joinpath(prefix, name)
+        path = joinpath(prefix, mod)
         isfile_casesensitive(path) && return abspath(path)
-        path = joinpath(prefix, base, "src", name)
+        path = joinpath(prefix, dirbase, "src", mod)
         isfile_casesensitive(path) && return abspath(path)
-        path = joinpath(prefix, name, "src", name)
+        path = joinpath(prefix, dir, "src", mod)
         isfile_casesensitive(path) && return abspath(path)
     end
     return nothing
 end
 
-function find_in_node_path(name, srcpath, node::Int=1)
+function find_in_node_path(name, mod, srcpath, node::Int=1)
     if myid() == node
-        find_in_path(name, srcpath)
+        find_in_path(name, mod, srcpath)
     else
-        remotecall_fetch(find_in_path, node, name, srcpath)
+        remotecall_fetch(find_in_path, node, name, mod, srcpath)
     end
 end
 
 function find_source_file(file)
     (isabspath(file) || isfile(file)) && return file
-    file2 = find_in_path(file)
+    file2 = find_in_path(file, "")
     file2 !== nothing && return file2
     file2 = joinpath(JULIA_HOME, DATAROOTDIR, "julia", "base", file)
     isfile(file2) ? file2 : nothing
@@ -302,7 +309,7 @@ end
 
 # require always works in Main scope and loads files from node 1
 toplevel_load = true
-function require(mod::Symbol)
+function require(mod::Symbol, file::Symbol=symbol(""))
     # dependency-tracking is only used for one top-level include(path),
     # and is not applied recursively to imported modules:
     old_track_dependencies = _track_dependencies[1]
@@ -332,9 +339,11 @@ function require(mod::Symbol)
             return
         end
         name = string(mod)
-        path = find_in_node_path(name, nothing, 1)
+        path = find_in_node_path(name, string(file), nothing, 1)
         if path === nothing
             throw(ArgumentError("$name not found in path.\nRun Pkg.add(\"$name\") to install the $name package"))
+        else
+            println("Found file at: $path")
         end
         try
             if last && myid() == 1 && nprocs() > 1
@@ -485,7 +494,7 @@ end
 compilecache(mod::Symbol) = compilecache(string(mod))
 function compilecache(name::ByteString)
     myid() == 1 || error("can only precompile from node 1")
-    path = find_in_path(name, nothing)
+    path = find_in_path(name, "", nothing)
     path === nothing && throw(ArgumentError("$name not found in path"))
     cachepath = LOAD_CACHE_PATH[1]
     if !isdir(cachepath)
@@ -563,7 +572,7 @@ function stale_cachefile(modpath, cachefile)
 end
 
 function recompile_stale(mod, cachefile)
-    path = find_in_path(string(mod), nothing)
+    path = find_in_path(string(mod), "", nothing)
     if path === nothing
         error("module $mod not found in current path; you should rm(\"$(escape_string(cachefile))\") to remove the orphaned cache file")
     end
